@@ -1,0 +1,45 @@
+<section class="mat-typography">
+  <mat-toolbar color="accent">
+    <div class="header">
+      <span>DevPlant Chat</span>
+
+      <button mat-icon-button color="primary" (click)="logout()">
+        <mat-icon>exit_to_app</mat-icon>
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <div class="chat-container" #chatContainer>
+    <div class="message-wrapper" *ngFor="let message of messages">
+      <div class="chat-message" [class.owner]="isMyMessage(message)">
+
+        <div class="message-row">
+          <div class="message-owner">
+            {{message.from}}:
+          </div>
+          <div class="message-value" matTooltip="'Message Sent at: '{{message.messageTime | date:'medium'}}">
+            {{message.value}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-container">
+    <form (submit)="sendMessage()">
+
+      <mat-form-field appearance="outline">
+        <input matInput placeholder="Send a message ..." name="message" [(ngModel)]="messageValue"
+               autofocus
+               (focus)="scrollPageToBottom()">
+        <button matSuffix mat-icon-button color="primary" type="submit" [disabled]="!messageValid()">
+          <mat-icon>send</mat-icon>
+        </button>
+      </mat-form-field>
+
+
+    </form>
+  </div>
+
+</section>
+

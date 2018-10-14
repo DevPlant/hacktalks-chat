@@ -1,0 +1,19 @@
+server.port: 8090
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/chat
+
+keycloak:
+  enabled: true
+  realm: hacktalks
+  auth-server-url: http://10.0.1.9:8080/auth
+  ssl-required: external
+  resource: hacktalks-client
+  bearer-only: true
+  security-constraints:
+    - authRoles: ['user']
+      securityCollections:
+      - name: chat
+        patterns: ['/*']
+  principal-attribute: preferred_username

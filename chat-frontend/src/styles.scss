@@ -1,0 +1,76 @@
+@import '../node_modules/@angular/material/theming';
+
+$black: #000;
+$white: #FFF;
+$navy: #16233F;
+$grey: #F2F3F4;
+$green-1: #30C45D;
+$red-1: #F36761;
+
+input{
+  font-size: 16px !important;
+}
+
+.mat-form-field-wrapper {
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+.mat-form-field-outline-start {
+  border-radius: 0 !important;
+}
+.mat-form-field-outline-end {
+  border-radius: 0 !important;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  max-height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: $grey;
+}
+
+@include mat-core();
+
+$green-palette: (
+  500: $green-1,
+  800: darken($green-1, 10%),
+  A100: darken($green-1, 10%),
+  contrast: (
+    500: $white,
+    800: $white,
+    A100: $white
+  )
+);
+
+$red-palette: (
+  500: $red-1,
+  800: darken($red-1, 10%),
+  A100: darken($red-1, 10%),
+  contrast: (
+    500: $white,
+    800: $white,
+    A100: $white
+  )
+);
+
+$black-palette: (
+  500: $black,
+  800: lighten($black, 10%),
+  A100: lighten($black, 10%),
+  contrast: (
+    500: $white,
+    800: $white,
+    A100: $white
+  )
+);
+
+$primary-palette: mat-palette($green-palette, 500, 800, A100);
+$accent-palette: mat-palette($black-palette, 500, 800, A100);
+$warn-palette: mat-palette($red-palette, 500, 800, A100);
+$devplant-theme: mat-light-theme($primary-palette, $accent-palette, $warn-palette);
+
+@include angular-material-theme($devplant-theme);
