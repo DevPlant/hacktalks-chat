@@ -11,7 +11,6 @@ keycloak:
   ssl-required: external
   resource: hacktalks-client
   bearer-only: true
-  c
   security-constraints:
     - authRoles: ['user']
       securityCollections:

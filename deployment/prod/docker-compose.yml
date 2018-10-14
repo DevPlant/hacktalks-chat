@@ -1,14 +1,13 @@
-version: '3'
+version: '2'
 
 services:
   keycloak:
-      image: jboss/keycloak
+      image: devplant/chat-keycloak
       environment:
         KEYCLOAK_USER: admin
         KEYCLOAK_PASSWORD: admin
-      ports:
-        - 8080:8080
-
+        KEYCLOAK_IMPORT: /opt/jboss/hacktalks-realm.json
+        
   mongo:
     image: mongo
     restart: always
@@ -16,14 +15,10 @@ services:
   mongo-express:
     image: mongo-express
     restart: always
-    ports:
-      - 8081:8081
 
   chat-frontend:
     image: devplant/chat-frontend
     restart: always
-    ports:
-      - 8180:8080
 
   chat-backend:
     image: devplant/chat-backend
@@ -31,4 +26,4 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       MONGO_URL: mongodb://mongo:27017/chat    
-      AUTH_SERVER_URL: http://10.0.1.9:8080/auth    
+      AUTH_SERVER_URL: http://auth.devplant.ro/auth    

@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-    keyCloakUrl: 'http://10.0.1.9:8080/auth',
+    keyCloakUrl: 'https://auth.devplant.ro/auth',
     keyCloakRealm: 'hacktalks',
     keyCloakClientId: 'hacktalks-client'
 };
