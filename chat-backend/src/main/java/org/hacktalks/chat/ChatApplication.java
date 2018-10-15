@@ -1,34 +1,45 @@
 package org.hacktalks.chat;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.mongodb.MongoClientOptions;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
-import org.springframework.data.mongodb.repository.Tailable;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.security.Principal;
-
+@EnableAsync
 @SpringBootApplication
 public class ChatApplication {
+
+    @Bean
+    public MongoClientOptions mongoOptions() {
+        return MongoClientOptions.builder().threadsAllowedToBlockForConnectionMultiplier(2).maxConnectionIdleTime(1)
+                .connectionsPerHost(1).minConnectionsPerHost(1).socketTimeout(2000).build();
+    }
+
+    @Bean(name = "taskExecutor")
+    public AsyncTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setMaxPoolSize(100);
+        taskExecutor.setQueueCapacity(10000);
+        return taskExecutor;
+    }
+
+    @Bean
+    protected WebMvcConfigurer webMvcConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+                configurer.setTaskExecutor(taskExecutor());
+            }
+        };
+    }
 
     @Bean
     CommandLineRunner cmd(MongoOperations mongoOperations) {
@@ -45,58 +56,4 @@ public class ChatApplication {
     }
 }
 
-@RequestMapping("/api")
-@RestController
-class ChatCtrl {
 
-    @Autowired
-    private MessageRepo messageRepo;
-
-    @GetMapping("/test")
-    public String test() {
-        return "Test";
-    }
-
-    @GetMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Message> messages() {
-        return messageRepo.findAllByMessageTimeGreaterThanEqual(System.currentTimeMillis());
-    }
-
-    @GetMapping(value = "/chat/history", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<Message> previousMessages(@RequestParam(value = "beforeTime", required = false) Long beforeTime) {
-        if (beforeTime == null) {
-            beforeTime = System.currentTimeMillis();
-        }
-        return messageRepo.findAllByMessageTimeLessThan(beforeTime,
-                PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "messageTime")));
-    }
-
-    @PostMapping(value = "/chat", consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<Message> postMessage(@RequestBody Message message, Principal principal) {
-        message.setMessageTime(System.currentTimeMillis());
-        message.setFrom(principal != null ? principal.getName() : "Anonymous");
-        return messageRepo.save(message);
-    }
-
-}
-
-interface MessageRepo extends ReactiveMongoRepository<Message, String> {
-
-    @Tailable
-    Flux<Message> findAllByMessageTimeGreaterThanEqual(long messageTime);
-
-    Flux<Message> findAllByMessageTimeLessThan(long messageTime, Pageable pageable);
-}
-
-@Data
-@Document(collection = "messages")
-class Message {
-
-    @Id
-    private String id;
-
-    private String from;
-    private String value;
-    private long messageTime;
-}
